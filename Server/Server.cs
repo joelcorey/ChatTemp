@@ -24,22 +24,30 @@ namespace Server
         public void Run()
         {
             AcceptClient();
-            string message = client.Recieve();
+
+            Task taskAccecptClient = Task<string>.Factory.StartNew(() => {
+                string message = ClientReceive();
+                return message;
+            });
+
+            //string message = ClientReceive();
+            //string message = client.Recieve();
             Respond(message);
         }
+
+        private string ClientReceive()
+        {
+            return client.Recieve();
+        }
+
         private void AcceptClient()
         {
-            while (keepAlive)
-            {
-                //TcpClient clientSocket = default(TcpClient);
-                Task.Run(() =>
-                {
-                    TcpClient clientSocket = server.AcceptTcpClient();
-                    Console.WriteLine("Connected");
-                    NetworkStream stream = clientSocket.GetStream();
-                    client = new Client(stream, clientSocket);
-                });
-            }
+            TcpClient clientSocket = default(TcpClient);
+            clientSocket = server.AcceptTcpClient();
+            Console.WriteLine("Connected");
+            NetworkStream stream = clientSocket.GetStream();
+            client = new Client(stream, clientSocket);
+ 
         }
         private void Respond(string body)
         {
