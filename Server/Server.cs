@@ -15,6 +15,7 @@ namespace Server
         public static Client client;
         TcpListener server;
         bool keepAlive;
+        
 
         public Server()
         {
@@ -23,21 +24,29 @@ namespace Server
         }
         public void Run()
         {
-            
+            string messsage;
 
-            Task taskAccecptClient = Task.Factory.StartNew(() => {
-                AcceptClient()
-            });
-            
-            Task<string> taskClientReceiveMessage = Task<string>.Factory.StartNew(() => {
-                var clientMessage = client.Recieve();
-                return clientMessage;
-            });
-            string message = taskClientReceiveMessage.Result;
+            keepAlive = true;
 
-            //string message = ClientReceive();
-            //string message = client.Recieve();
-            Respond(message);
+            while (keepAlive)
+            {
+                Task taskAccecptClient = Task.Factory.StartNew(() =>
+                {
+                    AcceptClient();
+                });
+                taskAccecptClient.Wait();
+
+                // continue here ..
+                Task<string> taskClientReceiveMessage = Task<string>.Factory.StartNew(() => {
+                    string clientMessage = client.Recieve();
+                    return clientMessage;
+                });
+                string message = taskClientReceiveMessage.Result;
+
+                Task taskClientRespndMessage = Task.Factory.StartNew(() => {
+                    Respond(message);
+                });
+            }
         }
 
         private string ClientReceive()
