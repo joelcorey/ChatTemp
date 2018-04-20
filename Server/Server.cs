@@ -23,12 +23,17 @@ namespace Server
         }
         public void Run()
         {
-            AcceptClient();
+            
 
-            Task taskAccecptClient = Task<string>.Factory.StartNew(() => {
-                string message = ClientReceive();
-                return message;
+            Task taskAccecptClient = Task.Factory.StartNew(() => {
+                AcceptClient()
             });
+            
+            Task<string> taskClientReceiveMessage = Task<string>.Factory.StartNew(() => {
+                var clientMessage = client.Recieve();
+                return clientMessage;
+            });
+            string message = taskClientReceiveMessage.Result;
 
             //string message = ClientReceive();
             //string message = client.Recieve();
