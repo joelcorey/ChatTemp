@@ -14,15 +14,15 @@ namespace Server
     {
         public static Client client;
         TcpListener server;
-        bool keepAlive;
         private string message;
+        private bool keepAlive;
 
         public Server()
         {
             server = new TcpListener(IPAddress.Parse("127.0.0.1"), 9999);
             server.Start();
         }
-        public void Run()
+        public async void RunAsync()
         {
 
             keepAlive = true;
@@ -30,23 +30,28 @@ namespace Server
             while (keepAlive)
             {
 
-                Task taskAccecptClient = Task.Factory.StartNew(() =>
+                await Task.Run(() =>
                 {
                     AcceptClient();
                 });
-                taskAccecptClient.Wait();
-
-                // continue here ..
-                Task<string> taskClientReceiveMessage = Task<string>.Factory.StartNew(() => {
+                
+                message = await Task<string>.Run(() =>
+                {
                     string clientMessage = client.Recieve();
                     return clientMessage;
                 });
-                message = taskClientReceiveMessage.Result;
-                
-                Task taskClientRespondMessage = Task.Factory.StartNew(() => {
+                //message = taskClientReceiveMessage.Result;
+
+                await Task.Run(() =>
+                {
                     Respond(message);
                 });
+                Task.WaitAll();
             }
+
+            //AcceptClient();
+            //client.Recieve());
+            //Respond(message));
         }
 
         private string ClientReceive()
@@ -56,16 +61,17 @@ namespace Server
 
         private void AcceptClient()
         {
+
             TcpClient clientSocket = default(TcpClient);
             clientSocket = server.AcceptTcpClient();
             Console.WriteLine("Connected");
             NetworkStream stream = clientSocket.GetStream();
-            client = new Client(stream, clientSocket);
- 
+
+            client = new Client(stream, clientSocket);            
         }
         private void Respond(string body)
         {
-             client.Send(body);
+            client.Send(body);
         }
     }
 }

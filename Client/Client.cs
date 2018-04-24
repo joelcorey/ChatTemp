@@ -12,12 +12,25 @@ namespace Client
     {
         TcpClient clientSocket;
         NetworkStream stream;
+        bool keepAlive;
+
         public Client(string IP, int port)
         {
             clientSocket = new TcpClient();
             clientSocket.Connect(IPAddress.Parse(IP), port);
             stream = clientSocket.GetStream();
         }
+
+        public void Run()
+        {
+            keepAlive = true;
+            while (keepAlive)
+            {
+                Send();
+                Recieve();
+            }
+        }
+
         public void Send()
         {
             string messageString = UI.GetInput();
